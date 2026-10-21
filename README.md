@@ -50,16 +50,16 @@ different one with one click.
 
 - Model: `Xenova/mobilebert-uncased-mnli`, **25.7 MB** of quantized ONNX
   weights, fetched from huggingface.co.
-- Runtime: ONNX Runtime Web, **6.5 MB** gzipped, served from this origin.
-- The first press costs about **32 MB** and about 14 seconds on a warm
+- Runtime: ONNX Runtime Web, **6.7 MB** gzipped, served from this origin.
+- The first press costs about **33 MB** and about 14 seconds on a warm
   connection. After that the browser caches both, and it works with the network
   off.
 - Nothing is uploaded. The quote is read by the model in your browser and goes
   nowhere else.
 
-The library sits behind a dynamic import, so neither the 580 kB of
+The library sits behind a dynamic import, so neither the 578 kB of
 transformers.js nor the weights are fetched until you press the button. The
-app itself is 80 KB.
+app itself is 78 KB.
 
 ### It is not very good
 

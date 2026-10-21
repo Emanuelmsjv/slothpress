@@ -81,7 +81,7 @@ size it always uses. The renderer:
 Height is monotonically non-increasing as the font shrinks, so a binary search
 over the size range is valid and takes about six wraps instead of fifty-eight.
 `bench/render-bench.mjs` puts the worst case in the corpus: 400 words fit in
-5.4ms at p95.
+5.6ms at p95.
 
 If the text still does not fit at the minimum size, the card says so instead
 of quietly truncating it. `overflow` comes back from the renderer, and the UI
@@ -236,14 +236,14 @@ Measured against a logging server in headless Edge, not estimated:
 
 | | |
 | --- | --- |
-| App shell, first load | 80 KB gzipped |
-| transformers.js chunk | 160 KB gzipped |
-| ONNX Runtime Web | 6.5 MB gzipped |
+| App shell, first load | 78 KB gzipped |
+| transformers.js chunk | 164 KB gzipped |
+| ONNX Runtime Web | 6.7 MB gzipped |
 | Model weights | 25.7 MB |
 | Tokenizer | 190 KB |
 | Ready in | 13.6 s |
 
-The first press on the button therefore costs about **32 MB**. After that the
+The first press on the button therefore costs about **33 MB**. After that the
 browser caches both the runtime and the weights, and the feature works with
 the network off. The quote is never uploaded; it is read by the model in the
 browser and goes nowhere else.
