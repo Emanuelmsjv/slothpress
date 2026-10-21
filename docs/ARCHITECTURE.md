@@ -15,12 +15,14 @@ Everything below is a consequence of taking that seriously.
 ```
 ┌──────────────────────────────────────────────┐
 │ components/     Editor, StylePicker,          │
+│                 StyleSuggester,               │
 │                 CardPreview, ExportBar        │
 ├──────────────────────────────────────────────┤
 │ App             state, autosave, layout       │
 ├──────────────────────────────────────────────┤
 │ lib/            style, gradient, layout,       │
-│                 render, export, storage        │
+│                 render, export, storage,       │
+│                 suggest                       │
 └──────────────────────────────────────────────┘
 ```
 
@@ -173,6 +175,79 @@ filename changes when their contents do.
 Offline is not a nice-to-have here. The claim "no upload, no server" is only
 true if the thing keeps working when the network is gone.
 
+## The optional model
+
+`lib/suggest.ts` is the one part of the app that is allowed to be wrong.
+
+The renderer never sees a model. The model never sees the rendered card. They
+meet in exactly one place: `suggest.ts` returns a ranked list of style
+presets, and `StyleSuggester` applies one of them.
+
+The model is `Xenova/mobilebert-uncased-mnli`, a MobileBERT checkpoint
+fine-tuned for natural language inference, run through
+`transformers.js`'s `zero-shot-classification` pipeline. NLI gives you a
+scorer for free: for each candidate label you phrase a hypothesis, and the
+model tells you how well the quote entails it.
+
+```
+quote      → premise
+"This quote is deep, vast and contemplative, like the sea."  → hypothesis
+```
+
+Each of the eight presets gets one hypothesis, written by hand, describing the
+mood of that preset. The entailment score for each hypothesis becomes the
+score for that preset, and the scores are normalised to sum to one.
+
+That is the whole technique. It is also why the model is bad at it: a
+25-million-parameter model with a strong prior over its label set will rank
+certain moods above their evidence. On *"The sea was vast and deep that
+night."* it put Ink ("stark, technical and to the point") first and Tide
+third. The scores are shown in the UI for exactly this reason, and the top
+pick is one click from being replaced.
+
+### Three things that had to be true
+
+**Nothing downloads until it is asked for.** `@huggingface/transformers` is
+behind a dynamic `import()`, so it is a separate chunk that the browser only
+fetches when the button is pressed. The app's own bundle stays at 80 KB
+gzipped.
+
+**The runtime comes from this origin.** transformers.js defaults to pulling
+the ONNX Runtime Web build from jsDelivr, which would make the app depend on
+a third party at runtime for no reason. The `.wasm` and its `.mjs` loader are
+imported as URLs and handed to `env.backends.onnx.wasm.wasmPaths`, so they are
+served from the same place as the rest of the app:
+
+```ts
+import ortMjsUrl from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.mjs?url';
+import ortWasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url';
+
+env.backends.onnx.wasm.wasmPaths = { wasm: ortWasmUrl, mjs: ortMjsUrl };
+```
+
+**There is a fallback that admits what it is.** If the model cannot load — no
+network, blocked WebAssembly, a browser without SIMD — `suggest.ts` falls back
+to counting keywords, and the UI says the result came from keywords rather
+than from the model. A silent fallback would be a lie about what happened.
+
+### What it costs
+
+Measured against a logging server in headless Edge, not estimated:
+
+| | |
+| --- | --- |
+| App shell, first load | 80 KB gzipped |
+| transformers.js chunk | 160 KB gzipped |
+| ONNX Runtime Web | 6.5 MB gzipped |
+| Model weights | 25.7 MB |
+| Tokenizer | 190 KB |
+| Ready in | 13.6 s |
+
+The first press on the button therefore costs about **32 MB**. After that the
+browser caches both the runtime and the weights, and the feature works with
+the network off. The quote is never uploaded; it is read by the model in the
+browser and goes nowhere else.
+
 ## The server half
 
 The app does not need a server. Sharing a card between devices does, and
@@ -231,10 +306,16 @@ or returned twice at a page boundary. The id is the tiebreaker, and
 
 ## Decisions
 
-**No AI in the card path.** A quote card does not need a model. With one, you
+**No model in the render path.** A quote card does not need one. With one, you
 have a latency budget, an API key, a bill and a way for the same input to
-produce a different output. The whole value of this project is that the output
-is a function of the input.
+produce a different output. The whole value of this project is that the
+output is a function of the input.
+
+The model is allowed to choose which style to hand to the renderer. That is a
+different job from drawing the card, and keeping them apart is what lets the
+app offer the model without giving up the property that made it worth
+building. If the model is wrong, the card is still deterministic; you just
+pick a different preset.
 
 **No accounts.** The first version has no way to be logged out of. Sharing is
 a Postgres row and an RLS policy away; it does not need an identity system to

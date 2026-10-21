@@ -7,10 +7,13 @@ import {
   type StyleMetadata,
   type TextAlign,
 } from '../lib/style';
+import { StyleSuggester } from './StyleSuggester';
 
 interface StylePickerProps {
   style: StyleMetadata;
   onChange: (style: StyleMetadata) => void;
+  /** The quote, so the model has something to read. */
+  text: string;
 }
 
 const ALIGNMENTS: { id: TextAlign; label: string; hint: string }[] = [
@@ -19,7 +22,7 @@ const ALIGNMENTS: { id: TextAlign; label: string; hint: string }[] = [
   { id: 'right', label: 'Right', hint: 'Align text to the right edge' },
 ];
 
-export function StylePicker({ style, onChange }: StylePickerProps) {
+export function StylePicker({ style, onChange, text }: StylePickerProps) {
   const update = (patch: Partial<StyleMetadata>) => onChange({ ...style, ...patch });
 
   const gradient = useMemo(() => parseGradient(style.bg_value), [style.bg_value]);
@@ -66,6 +69,11 @@ export function StylePicker({ style, onChange }: StylePickerProps) {
           ))}
         </div>
       </div>
+
+      <StyleSuggester
+        text={text}
+        onApply={(preset) => update(preset.style)}
+      />
 
       <div className="field row">
         <label className="field grow">

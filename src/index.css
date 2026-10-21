@@ -381,6 +381,113 @@ p {
   border-color: var(--accent);
 }
 
+/* ---------- suggestions ---------- */
+
+.suggest-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.suggest-note {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  flex: 1;
+  min-width: 180px;
+}
+
+.suggest-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.suggest-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 160ms ease;
+}
+
+.suggest-warning {
+  background: rgba(255, 180, 84, 0.1);
+  border: 1px solid rgba(255, 180, 84, 0.3);
+  color: var(--warn);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.suggest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.suggest-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 74px 1fr 42px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  background: var(--bg-sunken);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 6px 9px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 120ms ease;
+}
+
+.suggest-row:hover {
+  border-color: var(--accent);
+}
+
+.suggest-row.applied {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.suggest-name {
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggest-row.applied .suggest-name {
+  color: var(--text);
+}
+
+.suggest-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.suggest-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.suggest-score {
+  text-align: right;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- preview ---------- */
 
 .preview-frame {

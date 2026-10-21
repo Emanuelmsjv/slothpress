@@ -22,6 +22,9 @@ card = render(content, author, style)
 No randomness, no model, no network. The same input always produces the same
 image, which means the layout can be checked by a machine instead of by taste.
 
+That sentence is about the renderer, and it still holds: there is no model in
+the code that draws the card. What is optional is who chooses the style.
+
 ## What it does
 
 - Type or paste a quote. Blank lines are kept, because a poem means them.
@@ -33,6 +36,42 @@ image, which means the layout can be checked by a machine instead of by taste.
 - Your draft is saved in the browser. There is nothing to log into.
 
 It installs as an app and keeps working with the network off.
+
+## The optional model
+
+The card does not need a model, and there is not one in the render path. But
+choosing the typography by hand is the slowest part of making a quote card,
+so there is a button that does it for you.
+
+Press **Suggest a style** and a MobileBERT checkpoint fine-tuned for natural
+language inference reads the quote and ranks the eight presets against it. The
+top one is applied; the rest stay listed with their scores, so you can pick a
+different one with one click.
+
+- Model: `Xenova/mobilebert-uncased-mnli`, **25.7 MB** of quantized ONNX
+  weights, fetched from huggingface.co.
+- Runtime: ONNX Runtime Web, **6.5 MB** gzipped, served from this origin.
+- The first press costs about **32 MB** and about 14 seconds on a warm
+  connection. After that the browser caches both, and it works with the network
+  off.
+- Nothing is uploaded. The quote is read by the model in your browser and goes
+  nowhere else.
+
+The library sits behind a dynamic import, so neither the 580 kB of
+transformers.js nor the weights are fetched until you press the button. The
+app itself is 80 KB.
+
+### It is not very good
+
+A 25-million-parameter model is not a designer. It ranks the presets against a
+hand-written description of each one ("deep, vast and contemplative, like the
+sea"), and it is wrong often enough to matter. Asked about *"The sea was vast
+and deep that night."* it ranked Ink first and Tide third, which is backwards.
+
+So the scores are always on screen, and the ranking is always overridable. And
+when the model cannot be loaded at all — no network, blocked WebAssembly, a
+browser without SIMD — the app falls back to counting keywords, and says so in
+plain words instead of pretending a model answered.
 
 ## Running it
 
@@ -60,6 +99,7 @@ src/lib/     the whole engine, no React
   render.ts    card geometry and painting
   export.ts    getting the card out of the browser
   storage.ts   the draft, kept in localStorage
+  suggest.ts   the optional model, and the keyword guess behind it
 src/components/  the editor, the style picker, the preview, the export bar
 db/           Postgres schema, an RLS audit, and leak scenarios
 docs/         architecture notes
@@ -119,9 +159,9 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/rls-scenarios.sql
 
 ## Deliberately not here
 
-- **No AI in the card path.** A quote card does not need a model, and a model
-  in the loop means a latency budget and an API key for a job that a line
-  wrapping does better.
+- **No model in the render path.** A quote card does not need one, and a model
+  there means a latency budget and an API key for a job that a line wrapping
+  does better. The model only ever picks a style; it never touches the text.
 - **No accounts.** Not now. The first version has no way to be logged out of.
 - **No photo backgrounds.** Gradients and solid colours are enough, and they
   render in a fraction of the time.
@@ -131,3 +171,10 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/rls-scenarios.sql
 ## Licence
 
 MIT.
+
+The optional model is not covered by that licence.
+`Xenova/mobilebert-uncased-mnli` is an ONNX conversion of
+`typeform/mobilebert-uncased-mnli`, a fine-tune of `google/mobilebert-uncased`,
+whose architecture is Apache-2.0. The fine-tune's own model card declares no
+licence, so it inherits Apache-2.0. The weights are fetched at runtime and are
+not redistributed here.

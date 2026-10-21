@@ -64,7 +64,7 @@ export function App() {
             onContentChange={setContent}
             onAuthorChange={setAuthor}
           />
-          <StylePicker style={style} onChange={setStyle} />
+          <StylePicker style={style} onChange={setStyle} text={content} />
         </div>
 
         <div className="preview">
