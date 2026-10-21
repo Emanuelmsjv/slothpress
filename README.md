@@ -39,6 +39,8 @@ It installs as an app and keeps working with the network off.
 
 ## The optional model
 
+![The style suggester with its ranked scores](docs/suggest.png)
+
 The card does not need a model, and there is not one in the render path. But
 choosing the typography by hand is the slowest part of making a quote card,
 so there is a button that does it for you.
