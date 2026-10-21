@@ -1,0 +1,19 @@
+{
+  "name": "Slothpress",
+  "short_name": "Slothpress",
+  "description": "Turn a few words into a typeset quote card you can post anywhere. Everything runs in your browser.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#11111d",
+  "theme_color": "#11111d",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
